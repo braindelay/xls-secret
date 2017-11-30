@@ -5,7 +5,8 @@ import hashlib
 def parse_args():
     parser = argparse.ArgumentParser(description='Files to parse.')
     parser.add_argument('files', metavar='N', nargs='+',  help='files to parse')
-    parser.add_argument('-s', dest = 'hides', action = 'append', help="Set of entries to hide, see readme for more details")
+    parser.add_argument('-s', dest = 'hides', action = 'append',
+                        help="Set of entries to hide, e.g. SheetA:A,B,C ")
     parser.add_argument('--salt', default=None)
     parser.add_argument('--from-row', dest='from_row', default=None, type=int)
 
@@ -30,9 +31,11 @@ class Hide:
     def hide(self, workbook):
         sheet = workbook[self.sheet_name]
         # open the given sheet and find the column
+        # into which the hashed value will be written
         root_col=sheet[self.column_names[0]]
 
-        # hash the keys
+        # now, root through this column
+        # and replace it with a hash pf all the working columns
         row = 1
         for r in root_col:
             if not self.from_row or row >= self.from_row:
@@ -44,10 +47,7 @@ class Hide:
                 r.value = hash.hexdigest()
             row = row + 1
 
-        # now deleyte the non-root cols
-        if len(self.column_names) > 1:
-            for c in self.column_names[1:]:
-                print c
+
 # Parse the args and build the hides
 def build_hides(args):
     hides = []
