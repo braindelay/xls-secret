@@ -1,0 +1,2 @@
+openpyxl=2.4.9
+argparse=1.4.0
