@@ -28,25 +28,30 @@ class Hide:
 
     # Apply this rule to the given workbook
     def hide(self, workbook):
-        sheet = workbook[self.sheet_name]
-        # open the given sheet and find the column
-        # into which the hashed value will be written
-        root_col=sheet[self.column_names[0]]
 
-        # now, root through this column
-        # and replace it with a hash pf all the working columns
-        row = 1
-        for r in root_col:
-            if not self.from_row or row >= self.from_row:
-                hash = hashlib.sha512()
-                for c in self.column_names:
-                    cell = sheet['%s%s' %(c, row)]
-                    hash.update(cell.value)
+        if self.sheet_name in workbook:
+            sheet = workbook[self.sheet_name]
 
-                    if c in self.clear_columns:
-                        cell.value = None
-                r.value = hash.hexdigest()
-            row = row + 1
+            # open the given sheet and find the column
+            # into which the hashed value will be written
+            root_col_name=self.column_names[0]
+            root_col=sheet[root_col_name]
+
+            # now, root through this column
+            # and replace it with a hash pf all the working columns
+            row = 1
+            for r in root_col:
+                if not self.from_row or row >= self.from_row:
+                    hash = hashlib.sha512()
+                    for c in self.column_names:
+                        cell = sheet['%s%s' %(c, row)]
+                        hash.update(cell.value)
+
+                        if c in self.clear_columns:
+                            cell.value = None
+                    r.value = hash.hexdigest()
+                row = row + 1
+
 
 def load_configs(args):
     with open(args.hide_config) as f:

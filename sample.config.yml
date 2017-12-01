@@ -22,7 +22,19 @@ translations:
       - B
 
 
-  - sheet: Monkey
+  - sheet: This be a sheet
+    from_row: 5
+    key:
+      - A
+      - B
+      - C
+    hide:
+      - A
+      - B
+      - C
+
+  # if we ask for a sheet that's not here, we shouldn't break
+  - sheet: Not a real sheet
     from_row: 5
     key:
       - A
