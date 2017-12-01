@@ -31,6 +31,9 @@ Where:
 ---
 # optional, will be applied to all hashes across all sheets
 salt: this is a secret key
+# optional: if true, then if any field is missing from the keys, then the
+#         entire file will fail
+is_strict: True
 # a list of translations to apply
 translations:
   # what sheet to apply the translations

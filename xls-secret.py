@@ -19,12 +19,13 @@ class Hide:
     # not hide column names - the first row is 0)
     #
     # args.salt, sheet_name,key_name, columns_names, args.from_row
-    def __init__(self, salt, sheet_name, column_names, clear_columns, from_row):
+    def __init__(self, salt, sheet_name, column_names, clear_columns, from_row, is_strict):
         self.salt = salt
         self.sheet_name = sheet_name
         self.column_names = column_names
         self.clear_columns= clear_columns
         self.from_row=from_row
+        self.is_strict = is_strict
 
     # Apply this rule to the given workbook
     def hide(self, workbook):
@@ -45,7 +46,15 @@ class Hide:
                     hash = hashlib.sha512()
                     for c in self.column_names:
                         cell = sheet['%s%s' %(c, row)]
-                        hash.update(cell.value)
+
+                        cell_value = cell.value
+                        if not cell_value:
+                            if self.is_strict:
+                                exit("File cannot be secured: missing field for %s:%s:%s" % (self.sheet_name, c, row))
+                            else:
+                                cell_value = ''
+
+                        hash.update(cell_value)
 
                         if c in self.clear_columns:
                             cell.value = None
@@ -59,13 +68,20 @@ def load_configs(args):
         return yaml.safe_load(f)
 
 # Parse the args and build the hides
-#{'salt': 'this is a secret key', 'translations': [{'from_row': 2, 'hide': ['A', 'B'], 'key': ['A', 'B', 'C'], 'sheet': 'SheetA'}, {'from_row': 5, 'hide': ['A', 'B', 'C'], 'key': ['A', 'B', 'C'], 'sheet': 'Monkey'}]}
-
-def build_hides(configs):
+def build_hides(config):
     hides = []
     for h in default(config, 'translations'):
         # SheetA:A.B.C
-        hides.append(Hide(default(config, 'salt'), default(h, 'sheet'), default(h, 'key'), default(h, 'hide'), default(h, 'from_row')))
+        hides.append(
+            Hide(
+                default(config, 'salt'),
+                default(h, 'sheet'),
+                default(h, 'key'),
+                default(h, 'hide'),
+                default(h, 'from_row'),
+                default(config, 'is_strict')
+            )
+        )
     if not hides:
         exit("No secrets specified")
     return hides
