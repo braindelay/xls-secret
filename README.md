@@ -19,18 +19,36 @@ you'd be able to compare them.
 You can do this:
 
 ```
-python xls-secret.py  sample.xlsx -s SheetA:A,B,C --from-row=2 --salt "this is a secret"
+python xls-secret.py  -c sample.config.yml sample.xlsx 
 
 ```
 
 Where:
-- `-s` is used top define a column to make secret. 
-    The format is `<sheet name>:<column names>`. 
-    You can have as many of these as you like.
-- `--from-row` from which row (starting at 1) should the hashes
-   be applied - use this to skip over headers - optional
-- `--salt' an optional salt - see below for more details
-- A list of files to process.
+- `-c` points to a config file like this
+
+```yaml
+
+---
+# optional, will be applied to all hashes across all sheets
+salt: this is a secret key
+# a list of translations to apply
+translations:
+  # what sheet to apply the translations
+  - sheet: SheetA
+    # from which row (starting at 1) should the translations apply
+    # if left out, then every row will be updated
+    from_row: 2
+    # The column names (A, B, C, etc) used to generate the keys
+    key:
+      - A
+      - B
+      - C
+    # The column names to be wiped blank - these must be taken 
+    # from the columns used to generate keys
+    hide:
+      - A
+      - B
+```
 
 This will apply a `SHA512` hash over each value in these 
 columns, wipe the values that are there, and insert this hash

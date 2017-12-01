@@ -1,14 +1,12 @@
 from openpyxl import load_workbook
 import argparse
 import hashlib
+import yaml
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Files to parse.')
     parser.add_argument('files', metavar='N', nargs='+',  help='files to parse')
-    parser.add_argument('-s', dest = 'hides', action = 'append',
-                        help="Set of entries to hide, e.g. SheetA:A,B,C ")
-    parser.add_argument('--salt', default=None)
-    parser.add_argument('--from-row', dest='from_row', default=None, type=int)
+    parser.add_argument('-c', dest = 'hide_config', help='Config file to use',required=True)
 
     return parser.parse_args()
 
@@ -21,10 +19,11 @@ class Hide:
     # not hide column names - the first row is 0)
     #
     # args.salt, sheet_name,key_name, columns_names, args.from_row
-    def __init__(self, salt, sheet_name, column_names, from_row):
+    def __init__(self, salt, sheet_name, column_names, clear_columns, from_row):
         self.salt = salt
         self.sheet_name = sheet_name
         self.column_names = column_names
+        self.clear_columns= clear_columns
         self.from_row=from_row
 
     # Apply this rule to the given workbook
@@ -43,23 +42,31 @@ class Hide:
                 for c in self.column_names:
                     cell = sheet['%s%s' %(c, row)]
                     hash.update(cell.value)
-                    cell.value = None
+
+                    if c in self.clear_columns:
+                        cell.value = None
                 r.value = hash.hexdigest()
             row = row + 1
 
+def load_configs(args):
+    with open(args.hide_config) as f:
+        # use safe_load instead load
+        return yaml.safe_load(f)
 
 # Parse the args and build the hides
-def build_hides(args):
+#{'salt': 'this is a secret key', 'translations': [{'from_row': 2, 'hide': ['A', 'B'], 'key': ['A', 'B', 'C'], 'sheet': 'SheetA'}, {'from_row': 5, 'hide': ['A', 'B', 'C'], 'key': ['A', 'B', 'C'], 'sheet': 'Monkey'}]}
+
+def build_hides(configs):
     hides = []
-    for h in args.hides:
+    for h in default(config, 'translations'):
         # SheetA:A.B.C
-        (sheet_name, cell_args) = h.split(':')
-        columns_names = cell_args.split(',')
-        hides.append(Hide(args.salt, sheet_name, columns_names, args.from_row))
+        hides.append(Hide(default(config, 'salt'), default(h, 'sheet'), default(h, 'key'), default(h, 'hide'), default(h, 'from_row')))
     if not hides:
         exit("No secrets specified")
     return hides
 
+def default(dict, name, default_val=None):
+    return default_val if name not in dict else dict[name]
 # Secure the files, and dump a secret version in the same directory
 def make_secret(files, hides):
     for f in files:
@@ -72,7 +79,8 @@ def make_secret(files, hides):
 # Parse the args and then "secretify" the files
 args = parse_args()
 
-hides=build_hides(args)
+config = load_configs(args)
+hides=build_hides(config)
 make_secret(args.files,hides)
 
 

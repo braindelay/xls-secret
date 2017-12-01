@@ -1,0 +1,32 @@
+---
+# optional, will be applied to all hashes across all sheets
+salt: this is a secret key
+# a list of translations to apply
+translations:
+  # what sheet to apply the translations
+  - sheet: SheetA
+    # from which row (starting at 1) should the translations apply
+    # if left out, then every row will be updated
+    from_row: 2
+    # The column names (A, B, C, etc) used to generate the keys
+    key:
+      - A
+      - B
+      - C
+    # The column names to be wiped blank - these must be taken
+    # from the columns used to generate keys
+    hide:
+      - A
+      - B
+
+
+  - sheet: Monkey
+    from_row: 5
+    key:
+      - A
+      - B
+      - C
+    hide:
+      - A
+      - B
+      - C
