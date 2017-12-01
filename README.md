@@ -43,8 +43,10 @@ translations:
       - A
       - B
       - C
-    # The column names to be wiped blank - these must be taken 
+    # The column names to be wiped blank - these must be taken
     # from the columns used to generate keys
+    # NOTE: the first column, above, will *ALWAYS* be replaced by the
+    #     generated key
     hide:
       - A
       - B
