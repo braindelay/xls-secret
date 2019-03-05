@@ -18,8 +18,14 @@ you'd be able to compare them.
 
 You can do this:
 
+To set it up
 ```
-python xls-secret.py  -c sample.config.yml sample.xlsx 
+python -m virtualenv venv
+venv/bin/python2.7 -m pip install -r  requirements.txt
+
+```
+```
+venv/bin/python2.7 xls-secret.py  -c sample.config.yml sample.xlsx 
 
 ```
 

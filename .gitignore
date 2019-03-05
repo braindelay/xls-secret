@@ -1,3 +1,4 @@
 secret.sample.xlsx
 .idea
 *.iml
+venv
